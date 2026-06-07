@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Steganography | Hide Messages in Sound</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.15.10/dist/sweetalert2.all.min.js"></script>
+    <!-- CryptoJS CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <div class="background-effect"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">Audio Steganography</h1>
+                <p class="subtitle">Hide Secret Messages Inside Audio Files</p>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="encode">
+                <span class="tab-icon">🔒</span> Encode (Hide Message)
+            </button>
+            <button class="tab-btn" data-tab="decode">
+                <span class="tab-icon">🔓</span> Decode (Extract Message)
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- ENCODE TAB -->
+            <div class="tab-content active" id="encode">
+                <div class="section-card">
+                    <h2 class="section-title">Step 1: Select Audio File</h2>
+                    <div class="drag-drop-zone" id="dragDropZone">
+                        <div class="drag-drop-content">
+                            <img src="assets/icons/upload.svg" alt="Upload" class="drag-icon-image">
+                            <p class="drag-text">Drag & Drop your .wav file here</p>
+                            <p class="drag-subtext">or click to browse</p>
+                            <div class="sample-music-option">
+                                <span class="option-divider">—</span>
+                                <button type="button" class="use-sample-btn" id="useSampleBtn">Use Sample Music</button>
+                                <span class="option-divider">—</span>
+                            </div>
+                            <input type="file" id="audioFileInput" accept=".wav" hidden>
+                        </div>
+                    </div>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <div class="file-details">
+                            <span class="file-name" id="fileName"></span>
+                            <span class="file-size" id="fileSize"></span>
+                        </div>
+                        <button class="btn-secondary" id="changeFileBtn">Change File</button>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h2 class="section-title">Step 2: Enter Secret Message & Password</h2>
+                    <div class="form-group">
+                        <label for="secretMessage" class="form-label">Secret Message:</label>
+                        <textarea 
+                            id="secretMessage" 
+                            class="form-control textarea" 
+                            placeholder="Enter your secret message here..."
+                            rows="4"
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> / <span id="maxChars">0</span> characters
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="encodePassword" class="form-label">Encryption Password:</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="encodePassword" 
+                                class="form-control" 
+                                placeholder="Enter a strong password..."
+                            >
+                            <button class="toggle-password-btn" id="toggleEncodePassword" type="button">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-icon">ℹ️</span>
+                        <span>Your message will be encrypted with AES-256 before hiding in the audio file.</span>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="button-group">
+                        <button class="btn-primary" id="encodeBtn">
+                            <span class="btn-icon">🔐</span> Hide Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Encoding Progress -->
+                <div class="progress-container" id="encodeProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="encodeProgressFill"></div>
+                    </div>
+                    <p class="progress-text" id="encodeProgressText">Processing...</p>
+                </div>
+            </div>
+
+            <!-- DECODE TAB -->
+            <div class="tab-content" id="decode">
+                <div class="section-card">
+                    <h2 class="section-title">Step 1: Select Steganographed Audio File</h2>
+                    <div class="drag-drop-zone" id="dragDropZoneDecode">
+                        <div class="drag-drop-content">
+                            <img src="assets/icons/upload.svg" alt="Upload" class="drag-icon-image">
+                            <p class="drag-text">Drag & Drop your steganographed .wav file here</p>
+                            <p class="drag-subtext">or click to browse</p>
+                            <input type="file" id="decodeAudioFileInput" accept=".wav" hidden>
+                        </div>
+                    </div>
+                    <div class="file-info" id="decodeFileInfo" style="display: none;">
+                        <div class="file-details">
+                            <span class="file-name" id="decodeFileName"></span>
+                            <span class="file-size" id="decodeFileSize"></span>
+                        </div>
+                        <button class="btn-secondary" id="changeDecodeFileBtn">Change File</button>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h2 class="section-title">Step 2: Enter Decryption Password</h2>
+                    <div class="form-group">
+                        <label for="decodePassword" class="form-label">Decryption Password:</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="decodePassword" 
+                                class="form-control" 
+                                placeholder="Enter the password used to hide the message..."
+                            >
+                            <button class="toggle-password-btn" id="toggleDecodePassword" type="button">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-icon">ℹ️</span>
+                        <span>The correct password is required to decrypt and extract the hidden message.</span>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="button-group">
+                        <button class="btn-primary" id="decodeBtn">
+                            <span class="btn-icon">🔑</span> Extract Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Decoding Progress -->
+                <div class="progress-container" id="decodeProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="decodeProgressFill"></div>
+                    </div>
+                    <p class="progress-text" id="decodeProgressText">Processing...</p>
+                </div>
+
+                <!-- Extracted Message Display -->
+                <div class="section-card" id="extractedMessageContainer" style="display: none;">
+                    <h2 class="section-title">🎉 Secret Message Extracted</h2>
+                    <div class="extracted-message-box">
+                        <p id="extractedMessage"></p>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-secondary" id="copyMessageBtn">
+                            <span class="btn-icon">📋</span> Copy to Clipboard
+                        </button>
+                        <button class="btn-secondary" id="clearDecodeBtn">
+                            <span class="btn-icon">🗑️</span> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>🔐 Your data never leaves your browser • 100% Client-Side • AES-256 Encrypted</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/crypto.js"></script>
+    <script src="js/stegano.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
